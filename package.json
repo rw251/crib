@@ -1,0 +1,17 @@
+{
+  "name": "crib",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "cp ./src/*.* ./public",
+    "dev": "npx wrangler pages dev public/ --d1 CRIB_DB",
+    "predev": "npm run build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cookie": "^0.5.0"
+  }
+}
