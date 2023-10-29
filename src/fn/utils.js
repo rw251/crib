@@ -1,49 +1,49 @@
 import { parse } from 'cookie';
 import crypto from 'node:crypto';
 
-let cookie;
-const cookieName = 'cribmember';
-function loadCookie() {
-  cookie = cookie || parse(context.request.headers.get('Cookie') || '');
-}
+const COOKIE = 'cribmember';
 
 function getSessionIdFromCookie() {
-  loadCookie();
-  return cookie[cookieName];
+  const cookie = parse(context.request.headers.get('Cookie') || '');
+  return cookie[COOKIE];
 }
 
 function generateKey() {
   return crypto.randomBytes(16).toString('base64');
 }
 
-async function jsonResponse(json) {
+async function jsonResponse(json, removeCookie) {
   const resp = new Response(JSON.stringify(json), {
     headers: {
       'content-type': 'application/json;charset=UTF-8',
+      'Set-Cookie': setCookie(removeCookie),
     },
   });
-  if (session && session.userId && sessionId) {
-    await context.env.CRIB_KV.put(sessionId, JSON.stringify(session));
-    const inThirtyDays = new Date();
-    inThirtyDays.setDate(inThirtyDays.getDate() + 30);
-    const myCookie = `cribmember=${sessionId}; Expires=${inThirtyDays.toUTCString()}`;
-    resp.headers.set('Set-Cookie', myCookie);
-  }
   return resp;
+}
+
+function setCookie(isRemove) {
+  const expiryDate = new Date();
+  if (isRemove) {
+    expiryDate.setHours(0);
+  } else {
+    expiryDate.setDate(expiryDate.getDate() + 30);
+  }
+  const myCookie = `${COOKIE}=${sessionId}; Expires=${expiryDate.toUTCString()}`;
+  return myCookie;
 }
 
 let session;
 let sessionId;
 let context;
-async function sessionStart(ctx) {
+function sessionStart(ctx) {
   context = ctx;
   const existingSessionId = getSessionIdFromCookie();
   sessionId = existingSessionId || generateKey();
 
-  const sessionJSON = await context.env.CRIB_KV.get(sessionId);
-  session = sessionJSON ? JSON.parse(sessionJSON) : {};
+  session = {};
 
-  let isNewSession = !existingSessionId;
+  const isNewSession = !existingSessionId;
   return isNewSession;
 }
 
@@ -133,18 +133,6 @@ async function getUserInfoFromCode(code) {
   session.email = email;
   session.refresh_token = refreshToken;
 
-  console.log('>>>>> get user ' + userId + ' from db');
-  const dbResp = await context.env.CRIB_DB.prepare(
-    'SELECT session_id FROM users WHERE user_id = ?'
-  )
-    .bind(userId)
-    .first();
-
-  if (dbResp && dbResp.session_id) {
-    await context.env.CRIB_KV.delete(sessionId);
-    sessionId = dbResp.session_id;
-  }
-
   await updateUser();
 }
 
@@ -173,15 +161,11 @@ async function updateUser() {
 async function redirectHomeResponse() {
   const resp = new Response(null, {
     status: 302,
+    headers: {
+      Location: '/',
+      'Set-Cookie': setCookie(),
+    },
   });
-  if (session && session.userId && sessionId) {
-    await context.env.CRIB_KV.put(sessionId, JSON.stringify(session));
-    const inThirtyDays = new Date();
-    inThirtyDays.setDate(inThirtyDays.getDate() + 30);
-    const myCookie = `cribmember=${sessionId}; Expires=${inThirtyDays.toUTCString()}`;
-    resp.headers.set('Set-Cookie', myCookie);
-  }
-  resp.headers.set('Location', '/');
   return resp;
 }
 

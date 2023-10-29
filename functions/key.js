@@ -6,7 +6,7 @@ import {
 } from '../src/fn/utils';
 
 export async function onRequest(context) {
-  await sessionStart(context);
+  sessionStart(context);
 
   const code = getParam('code');
 

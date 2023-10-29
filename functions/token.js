@@ -6,7 +6,7 @@ import {
 } from '../src/fn/utils';
 
 export async function onRequest(context) {
-  const isNewSession = await sessionStart(context);
+  const isNewSession = sessionStart(context);
 
   if (isNewSession) {
     console.log('Cookie not set');
@@ -26,27 +26,25 @@ export async function onRequest(context) {
       console.log(
         '>>>>> no access token - perhaps access revoked at some point'
       );
-      const resp = await jsonResponse({
-        access_token: false,
-        token_refresh_failed: true,
-      });
-      const expiryDate = new Date();
-      expiryDate.setHours(0);
-      const myCookie = `cribmember=; Expires=${expiryDate.toUTCString()}`;
-      resp.headers.set('Set-Cookie', myCookie);
+      const resp = await jsonResponse(
+        {
+          access_token: false,
+          token_refresh_failed: true,
+        },
+        true
+      );
       return resp;
     }
   } else {
     console.log('>>>>> no refresh token found');
     // no refresh token so let's ditch the cookie
-    const resp = await jsonResponse({
-      access_token: false,
-      no_refresh_token: true,
-    });
-    const expiryDate = new Date();
-    expiryDate.setHours(0);
-    const myCookie = `cribmember=; Expires=${expiryDate.toUTCString()}`;
-    resp.headers.set('Set-Cookie', myCookie);
+    const resp = await jsonResponse(
+      {
+        access_token: false,
+        no_refresh_token: true,
+      },
+      true
+    );
     return resp;
   }
 }
