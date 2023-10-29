@@ -1,0 +1,6 @@
+# If you are only using Pages + D1, you only need the below in your wrangler.toml to interact with D1 locally.
+[[d1_databases]]
+binding = "CRIB_DB" # Should match preview_database_id
+database_name = "crib"
+database_id = "xxx" # wrangler d1 info YOUR_DATABASE_NAME
+preview_database_id = "CRIB_DB" # Required for Pages local development

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ title }}</title>
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#fdfddf">
+  <meta name="viewport" content="width=device-width, user-scalable=no" />
+  <meta name="google-signin-client_id" content="{{ clientId }}">
+  <meta name="google-drive-api-key" content="{{ apiKey }}"> 
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      height:100%;
+      user-select: none;
+    }
+
+    body {
+      text-align: center;
+      font-family: 'HelveticaNeue-Light','Helvetica Neue Light','Helvetica Neue',Helvetica,Arial,'Lucida Grande',sans-serif;
+      font-size: 16px;
+      margin: 0;
+      height: calc(100% - 60px);
+    }
+
+    body.persisted {
+      background: #fdfddf;
+    }
+
+    .offline .online-only {
+      display: none !important;
+    }
+
+    .loader {
+      z-index: 1;
+      position:absolute;
+      font-size: 50px;
+      left:0;
+      top:0;
+      width: 100%;
+      height: 100vh;
+      background-color: #448AFF;
+      color: white;
+      transition: opacity 0.75s cubic-bezier(0.075, 0.82, 0.165, 1);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .loaded {
+      opacity: 0;
+    }
+    button {
+      background-color: #2ECC40;
+      border: none;
+      color: white;
+      padding: 15px 32px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 4px;
+      cursor: pointer;
+    }
+    .top-button-bar {
+      display: none;
+      position: absolute;
+      top: 0;
+      height: 56px;
+      justify-content: center;
+      background-color: #000;
+      color: #fff;
+      left:0;
+      right:0;
+    }
+    .page {
+      margin-top:56px;
+      display:none;
+    }
+    .top-button-bar button {
+      border: 0;
+      cursor: pointer;
+      margin: 0;
+      display: inline-flex;
+      outline: 0;
+      padding: 0;
+      position: relative;
+      align-items: center;
+      border-radius: 0;
+      vertical-align: middle;
+      -moz-appearance: none;
+      justify-content: center;
+      text-decoration: none;
+      -moz-user-select: none;
+      background-color: transparent;
+      -webkit-appearance: none;
+      -webkit-tap-highlight-color: transparent;
+      flex: 1;
+      max-width: 168px;
+    }
+    .top-button-bar button:hover {
+      text-shadow: 0px 4px 4px white;
+    }
+    #syncStatus {
+      display:none;
+      position:absolute;
+      top: 0;
+      left: 0;
+      bottom:0;
+      right:0;
+      background:#0093fff2;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      z-index:1;
+      cursor:pointer;
+    }
+    #word {
+      font-size: 10vw;
+      letter-spacing: 0.3em;
+      padding-top:10px;
+      text-transform: uppercase;
+    }
+    @media (min-width: 600px) {
+      #word {
+        font-size: 60px;
+      }
+    }
+    .close-cross:hover {
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    input[type=text] {
+      width: 70px;
+    }
+
+    .lds-loader {
+    display: inline-block;
+    position: relative;
+    width: 80px;
+    height: 80px;
+  }
+  .lds-loader div {
+    display: inline-block;
+    position: absolute;
+    left: 8px;
+    width: 16px;
+    background: #fff;
+    animation: lds-loader 1.2s cubic-bezier(0, 0.5, 0.5, 1) infinite;
+  }
+  .lds-loader div:nth-child(1) {
+    left: 8px;
+    animation-delay: -0.24s;
+  }
+  .lds-loader div:nth-child(2) {
+    left: 32px;
+    animation-delay: -0.12s;
+  }
+  .lds-loader div:nth-child(3) {
+    left: 56px;
+    animation-delay: 0;
+  }
+  @keyframes lds-loader {
+    0% {
+      top: 8px;
+      height: 64px;
+    }
+    50%, 100% {
+      top: 24px;
+      height: 32px;
+    }
+  }
+  .top-button-bar button.sync-highlight {
+    text-decoration: underline solid red 2px;
+    text-underline-offset: 3px;
+  }
+  </style>
+</head>
+<body>
+
+  <div id="reloadBanner" style="display: none; position:fixed;top:56px; background-color: #f09025; color: white; font-weight: bold; padding: 15px 0;cursor: pointer;width: 100%;">
+    New version available - click here to load!
+  </div>
+
+  <div id="syncStatus"></div>
+
+  <div id="homePage" class="page" style="height:100%;align-items: center; justify-content: center;">
+    <div id="homePageContent" style="flex-wrap: wrap;justify-content: center;"></div> 
+    
+    <div id="new-list" style="display:none;flex-direction: column;">
+      <input id="list-name" type="text" placeholder="Name" />
+      <input id="list-file" type="file" name="datafile">
+      <button id="load">Load</button>
+    </div> 
+  </div>
+
+
+  <div id="cribPage" class="page" style="max-width:600px; margin-left: auto; margin-right: auto">
+    <div id="word"></div>
+    <div id="time"></div>
+    <div id="definition"></div>
+    <div id="status"></div>
+    <div id="button-reveal-wrapper" style="display: none;height: 50vh;position: absolute;bottom: 0;right: 0;left: 0;">
+      <button id="button-reveal" style="background-color: #448AFF;">REVEAL</button>
+    </div>
+    <div id="button-bar" style="display: none;grid-template-columns: 1fr 1fr;height: 50vh;position: absolute;bottom: 0;right: 0;left: 0;">
+      <button id="button-no" style="background-color: #FF4136;">NO</button>
+      <button id="button-yes">YES</button>
+    </div>
+  </div>
+
+  <div id="editPage" class="page">
+    <button id="deleteList">DELETE</button>
+    <div id="editList" style="display: flex;flex-wrap: wrap;gap:8px;"></div>
+  </div>
+
+  <div id="statsPage" class="page">
+    <div class="close-cross" style="position: absolute;top: 15px;right: 15px;font-size: 30px;">✕</div>
+    <h1>Intervals</h1>
+    <canvas id="intervalChart"></canvas>
+    <h1>Dates due</h1>
+    <div id="dueTable"></div>
+  </div>
+
+  <div id="top-button-bar" class="top-button-bar">
+    <button id="home">
+      Home
+    </button>
+    <button id="stats">
+      Stats
+    </button>
+    <button id="sync" class="online-only">
+      Sync
+    </button>
+    <button id="add">
+      Add list
+    </button>
+    <button id="edit">
+      Edit list
+    </button>
+  </div>  
+
+  <script src="/{{ scriptFile }}"></script>
+  <script async defer src="https://apis.google.com/js/api.js"
+    onload="this.onload=function(){};handleGapiLoaded()"
+    onreadystatechange="if (this.readyState === 'complete') this.onload()"></script>
+  
+</body>
+</html>

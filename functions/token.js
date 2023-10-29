@@ -1,51 +1,52 @@
-import { parse } from 'cookie';
-let env;
-
-function jsonResponse(json) {
-  return new Response(JSON.stringify(json), {
-    headers: {
-      'content-type': 'application/json;charset=UTF-8',
-    },
-  });
-}
-
-async function getRefreshTokenFromDb(sessionId) {
-  env.CRIB_DB;
-  /*
-      if ($conn->connect_error) {
-      error_log($conn->connect_error);
-      throw new Exception('DB connection failed - see error logs');
-    }   
-    $sql = "SELECT * FROM users WHERE session_id = '" . $session_id . "';";
-    $result = $conn->query($sql);
-    while($row = $result->fetch_assoc()) {
-      $user_id = $row["user_id"];
-      $email = $row["email"];
-      $name = $row["name"];
-      $refresh_token = $row["refresh_token"];
-    }
-
-    if(isset($refresh_token)) {
-      $_SESSION['user_id'] = $user_id;
-      $_SESSION['email'] = $email;
-      $_SESSION['name'] = $name;
-      return $refresh_token;
-    } else {
-      return false;
-    }
-  */
-}
+import {
+  sessionStart,
+  jsonResponse,
+  getRefreshTokenFromDb,
+  refreshAccessToken,
+} from '../src/fn/utils';
 
 export async function onRequest(context) {
-  env = context.env;
+  const isNewSession = await sessionStart(context);
 
-  const cookie = parse(context.request.headers.get('Cookie') || '');
-
-  if (!cookie.cribmember) {
+  if (isNewSession) {
     console.log('Cookie not set');
-    return jsonResponse({ access_token: false, no_cookie: true });
+    const resp = await jsonResponse({ access_token: false, no_cookie: true });
+    return resp;
+  }
+  console.log('cookie set lets try the db for the refresh token');
+  const refreshToken = await getRefreshTokenFromDb();
+  if (refreshToken) {
+    console.log('>>>>> use the refresh token');
+    const access_token = await refreshAccessToken(refreshToken);
+    if (access_token) {
+      console.log('>>>>> access token found and returned');
+      const resp = await jsonResponse({ access_token, token_refreshed: true });
+      return resp;
+    } else {
+      console.log(
+        '>>>>> no access token - perhaps access revoked at some point'
+      );
+      const resp = await jsonResponse({
+        access_token: false,
+        token_refresh_failed: true,
+      });
+      const expiryDate = new Date();
+      expiryDate.setHours(0);
+      const myCookie = `cribmember=; Expires=${expiryDate.toUTCString()}`;
+      resp.headers.set('Set-Cookie', myCookie);
+      return resp;
+    }
   } else {
-    console.log('cookie set lets try the db for the refresh token');
-    const refresh_token = await getRefreshTokenFromDb(cookie.cribmember);
+    console.log('>>>>> no refresh token found');
+    // no refresh token so let's ditch the cookie
+    const resp = await jsonResponse({
+      access_token: false,
+      no_refresh_token: true,
+    });
+    const expiryDate = new Date();
+    expiryDate.setHours(0);
+    const myCookie = `cribmember=; Expires=${expiryDate.toUTCString()}`;
+    resp.headers.set('Set-Cookie', myCookie);
+    return resp;
   }
 }

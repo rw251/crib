@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 100 100"  xml:space="preserve">
+   <!--Outer grey ring -->
+   <circle cx="50" cy="50" r="48" stroke="rgb(118,132,118)" stroke-width="3" fill="none" />
+   
+   <!--Outer blue ring -->
+   <circle cx="50" cy="50" r="45" stroke="rgb(0,83,149)" stroke-width="3" fill="rgb(212,212,204)" />
+   
+   <!-- Highlighted bit of clock -->
+    <path d="M50 50 50 6.5A43.5 43.5 0 0 1 91 65Z" fill="rgb(255,255,239)"/>
+
+   <!-- Vertical line in clock -->
+   <line x1="50" x2="50" y1="6.5" y2="93.5" stroke="rgb(118,132,118)" stroke-width="1.5"/> 
+   <!-- Horizontal line in clock -->
+   <line x1="6.5" x2="93.5" y1="50" y2="50" stroke="rgb(118,132,118)" stroke-width="1.5"/> 
+    
+    <!-- Eyes -->
+   <circle cx="33" cy="27" r="9" stroke="rgb(0,83,149)" stroke-width="1" fill="rgb(250,250,250)" />
+   <circle cx="33" cy="28" r="3" stroke="rgb(0,0,0)" stroke-width="3" fill="rgb(0,0,0)" />
+   <circle cx="33" cy="28" r="1" stroke="rgb(255,255,255)" stroke-width="0.5" fill="rgb(255,255,255)" />
+   <circle cx="67" cy="27" r="9" stroke="rgb(0,83,149)" stroke-width="1" fill="rgb(250,250,250)" />
+   <circle cx="67" cy="28" r="3" stroke="rgb(0,0,0)" stroke-width="3" fill="rgb(0,0,0)" />
+   <circle cx="67" cy="28" r="1" stroke="rgb(255,255,255)" stroke-width="0.5" fill="rgb(255,255,255)" />
+    
+   <!-- 4 o'clock dash -->
+   <line x1="10.5" x2="20" y1="50" y2="50" transform="rotate(210 50 50)" stroke-linecap="round" stroke="rgb(118,132,118)" stroke-width="1.5"/>    
+   <!-- 5 o'clock dash -->
+   <line x1="10.5" x2="20" y1="50" y2="50" transform="rotate(240 50 50)" stroke-linecap="round" stroke="rgb(118,132,118)" stroke-width="1.5"/>    
+   <!-- 7 o'clock dash -->
+   <line x1="10.5" x2="20" y1="50" y2="50" transform="rotate(300 50 50)" stroke-linecap="round" stroke="rgb(118,132,118)" stroke-width="1.5"/>    
+   <!-- 8 o'clock dash -->
+   <line x1="10.5" x2="20" y1="50" y2="50" transform="rotate(330 50 50)" stroke-linecap="round" stroke="rgb(118,132,118)" stroke-width="1.5"/> 
+   
+   <!-- Bottom half of pointer -->
+   <path d="M 50 54 90 64.75 50 50" stroke="rgb(0,83,149)" fill="rgb(0,83,149)" stroke-width="0.5" />
+   <!-- Top half of pointer -->
+      <path d="M 54 48 90 64.75 50 50" stroke="rgb(10,83,179)" fill="rgb(10,83,179)" stroke-width="0.5" />
+      <!-- Centre circle -->
+   <circle cx="50" cy="50" r="5" stroke="rgb(0,83,149)" stroke-width="3" fill="rgb(0,83,149)" />
+   
+   
+
+</svg> 
