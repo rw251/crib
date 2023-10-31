@@ -10,11 +10,9 @@ export async function onRequest(context) {
 
   const code = getParam('code');
 
-  let resp = await redirectHomeResponse();
-
   if (code) {
     await getUserInfoFromCode(code);
-    resp = await redirectHomeResponse();
   }
+  const resp = await redirectHomeResponse();
   return resp;
 }

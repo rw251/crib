@@ -1,0 +1,3 @@
+- running index.js tries to get the next however many definitions
+- any with todo must be manually looked up in oed
+- need to work out a way to incorporate into existing app

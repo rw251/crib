@@ -26,10 +26,12 @@ function setCookie(isRemove) {
   const expiryDate = new Date();
   if (isRemove) {
     expiryDate.setHours(0);
-  } else {
+    session.expiry = expiryDate.toUTCString();
+  } else if (!session.expiry) {
     expiryDate.setDate(expiryDate.getDate() + 30);
+    session.expiry = expiryDate.toUTCString();
   }
-  const myCookie = `${COOKIE}=${sessionId}; Expires=${expiryDate.toUTCString()}`;
+  const myCookie = `${COOKIE}=${sessionId}; Expires=${session.expiry}`;
   return myCookie;
 }
 
@@ -58,12 +60,14 @@ async function getRefreshTokenFromDb() {
   )
     .bind(sessionId)
     .first();
-  const { user_id, email, name, refresh_token } = dbResp || {};
+  const { user_id, email, name, refresh_token, expiry } = dbResp || {};
   if (refresh_token) {
     session.userId = user_id;
     session.email = email;
     session.name = name;
     session.refresh_token = refresh_token;
+    session.expiry = expiry;
+    checkExpiry();
     return refresh_token;
   }
   return false;
@@ -133,18 +137,40 @@ async function getUserInfoFromCode(code) {
   session.email = email;
   session.refresh_token = refreshToken;
 
+  const resp = await context.env.CRIB_DB.prepare(
+    'SELECT session_id, expiry FROM users WHERE user_id = ?'
+  )
+    .bind(userId)
+    .first();
+  if (resp && resp.session_id) {
+    sessionId = resp.session_id;
+  }
+  if (resp && resp.expiry) {
+    session.expiry = resp.expiry;
+  }
+
+  checkExpiry();
+
   await updateUser();
 }
 
+function checkExpiry() {
+  if (!session.expiry || new Date(session.expiry) < new Date()) {
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + 30);
+    session.expiry = expiryDate.toUTCString();
+    sessionId = generateKey();
+  }
+}
 async function updateUser() {
   if (!sessionId || !session.userId) return;
   const sql = `
-    INSERT INTO users (user_id, refresh_token, email, name, session_id)
-    VALUES (?1, ?2, ?3, ?4, ?5)
+    INSERT INTO users (user_id, refresh_token, email, name, session_id, expiry)
+    VALUES (?1, ?2, ?3, ?4, ?5, ?6)
     ON CONFLICT(user_id)
     DO UPDATE SET
       refresh_token=excluded.refresh_token, email=excluded.email, 
-      name=excluded.name, session_id=excluded.session_id`;
+      name=excluded.name, session_id=excluded.session_id, expiry=excluded.expiry`;
 
   const info = await context.env.CRIB_DB.prepare(sql)
     .bind(
@@ -152,7 +178,8 @@ async function updateUser() {
       session.refresh_token || null,
       session.email || null,
       session.name || null,
-      sessionId
+      sessionId,
+      session.expiry || null
     )
     .run();
   return info.success;
