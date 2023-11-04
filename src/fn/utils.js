@@ -31,7 +31,7 @@ function setCookie(isRemove) {
     expiryDate.setDate(expiryDate.getDate() + 30);
     session.expiry = expiryDate.toUTCString();
   }
-  const myCookie = `${COOKIE}=${sessionId}; Expires=${session.expiry}`;
+  const myCookie = `${COOKIE}=${sessionId}; Expires=${session.expiry}; Secure; HttpOnly`;
   return myCookie;
 }
 

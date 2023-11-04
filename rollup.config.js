@@ -14,7 +14,7 @@ const distDir = 'public';
 // Remove ./dist
 rimraf.sync(distDir);
 
-function buildConfig({ watch } = {}) {
+function buildConfig() {
   const isDev = process.env.BUILD !== 'production';
 
   const clientId = process.env.CLIENT_ID;
@@ -27,7 +27,7 @@ function buildConfig({ watch } = {}) {
     output: {
       dir: distDir,
       format: 'iife',
-      sourcemap: watch || 'hidden',
+      sourcemap: isDev || 'hidden',
       entryFileNames: '[name]-[hash].js',
       chunkFileNames: '[name]-[hash].js',
     },
@@ -55,6 +55,6 @@ function buildConfig({ watch } = {}) {
   };
 }
 
-export default function ({ watch }) {
-  return [buildConfig({ watch })];
+export default function () {
+  return [buildConfig()];
 }
