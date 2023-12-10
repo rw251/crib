@@ -6,6 +6,7 @@
   "scripts": {
     "build:dev": "rollup -c",
     "build:production": "rollup -c --environment BUILD:production",
+    "deploy": "node deploy.mjs",
     "dev": "npx wrangler pages dev public/ --compatibility-flags=\"nodejs_compat\" --ip=0.0.0.0",
     "predev": "npm run build:dev",
     "db:users": "npx wrangler d1 execute crib --local --command \"SELECT * FROM users\""
